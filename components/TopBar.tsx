@@ -99,6 +99,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               onChange={(e) => setFilter({ ...filter, sortBy: e.target.value as any })}
               className="px-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
             >
+              <option value="manual">Manual</option>
               <option value="createdAt">Newest</option>
               <option value="dueDate">Due Date</option>
               <option value="priority">Priority</option>

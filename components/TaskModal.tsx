@@ -13,7 +13,7 @@ interface TaskModalProps {
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, editTask, initialDate }) => {
-  const { addTask, updateTask, categories, addCategory } = useTasks();
+  const { addTask, updateTask, categories } = useTasks();
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -67,17 +67,6 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, editTask, initia
       addTask(taskData);
     }
     onClose();
-  };
-
-  const handleCreateCategory = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (e.target.value === 'new') {
-      const name = prompt("Enter new category name:");
-      if (name) {
-        addCategory(name);
-      }
-    } else {
-      setCategoryId(e.target.value);
-    }
   };
 
   return (
@@ -138,12 +127,11 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, editTask, initia
               <select
                 className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700/50 px-3 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-colors"
                 value={categoryId}
-                onChange={handleCreateCategory}
+                onChange={(e) => setCategoryId(e.target.value)}
               >
                 {categories.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
-                <option value="new" className="text-primary font-medium">+ New Category</option>
               </select>
             </div>
           </div>

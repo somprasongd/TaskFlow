@@ -10,7 +10,8 @@ interface TaskContextType {
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
-  addCategory: (name: string, color?: string) => void;
+  reorderTasks: (newTasks: Task[]) => void;
+  addCategory: (name: string, color?: string) => string;
   updateCategory: (id: string, updates: Partial<Category>) => void;
   deleteCategory: (id: string) => void;
   getFilteredTasks: () => Task[];
@@ -67,7 +68,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     priority: [],
     categoryId: 'all',
     status: 'all',
-    sortBy: 'createdAt',
+    sortBy: 'manual',
   });
 
   // Persist to local storage
@@ -97,13 +98,19 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTasks(prev => prev.filter(t => t.id !== id));
   };
 
+  const reorderTasks = (newTasks: Task[]) => {
+    setTasks(newTasks);
+  };
+
   const addCategory = (name: string, color: string = 'bg-gray-500') => {
+    const id = generateId();
     const newCategory: Category = {
-      id: generateId(),
+      id,
       name,
       color,
     };
     setCategories(prev => [...prev, newCategory]);
+    return id;
   };
 
   const updateCategory = (id: string, updates: Partial<Category>) => {
@@ -139,7 +146,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       filtered = filtered.filter(t => filter.priority.includes(t.priority));
     }
 
-    // Status Filter
+    // Status Filter - Note: Dashboard now handles splitting view, but if Status Filter is explicitly set, we honor it.
     if (filter.status === 'active') {
       filtered = filtered.filter(t => !t.isCompleted);
     } else if (filter.status === 'completed') {
@@ -148,8 +155,13 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Sorting
     filtered.sort((a, b) => {
-      // Always put completed tasks at the bottom unless filtering by completed specifically (which effectively hides non-completed)
-      // If filtering 'all', keeps completed at bottom.
+      // For manual sort, we generally rely on the array index.
+      // However, if we split active/completed in the UI, we just need to respect the relative order.
+      if (filter.sortBy === 'manual') {
+        return 0; // Keep original array order
+      }
+
+      // Always put completed tasks at the bottom unless filtering by completed specifically
       if (filter.status === 'all' && a.isCompleted !== b.isCompleted) {
         return a.isCompleted ? 1 : -1;
       }
@@ -167,8 +179,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         case 'alphabetical':
           return a.title.localeCompare(b.title);
         case 'createdAt':
-        default:
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        default:
+          return 0;
       }
     });
 
@@ -199,6 +212,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addTask,
       updateTask,
       deleteTask,
+      reorderTasks,
       addCategory,
       updateCategory,
       deleteCategory,

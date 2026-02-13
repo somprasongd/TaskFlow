@@ -1,3 +1,4 @@
+
 export type Priority = 'high' | 'medium' | 'low';
 
 export interface Task {
@@ -30,5 +31,5 @@ export interface FilterState {
   priority: Priority[];
   categoryId: string | null;
   status: 'all' | 'active' | 'completed';
-  sortBy: 'createdAt' | 'dueDate' | 'priority' | 'alphabetical';
+  sortBy: 'manual' | 'createdAt' | 'dueDate' | 'priority' | 'alphabetical';
 }
