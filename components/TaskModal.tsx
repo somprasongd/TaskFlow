@@ -74,8 +74,6 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, editTask, initia
       const name = prompt("Enter new category name:");
       if (name) {
         addCategory(name);
-        // We can't immediately select it here easily without refetching or complex logic, 
-        // effectively handled by context updates but simplistic for now.
       }
     } else {
       setCategoryId(e.target.value);
@@ -86,17 +84,17 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, editTask, initia
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/50 transition-opacity backdrop-blur-sm"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-lg bg-white rounded-t-xl sm:rounded-2xl shadow-xl overflow-hidden animate-in slide-in-from-bottom duration-300 sm:slide-in-from-bottom-10 sm:fade-in-25">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">
+      <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-t-xl sm:rounded-2xl shadow-xl overflow-hidden animate-in slide-in-from-bottom duration-300 sm:slide-in-from-bottom-10 sm:fade-in-25 transition-colors duration-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
             {editTask ? 'Edit Task' : 'New Task'}
           </h2>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -112,9 +110,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, editTask, initia
           />
           
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
             <textarea
-              className="w-full h-24 rounded-lg border border-gray-300 p-3 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
+              className="w-full h-24 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700/50 p-3 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none transition-colors"
               placeholder="Add details..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -123,9 +121,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, editTask, initia
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Priority</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
               <select
-                className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+                className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700/50 px-3 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-colors"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as Priority)}
               >
@@ -136,9 +134,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, editTask, initia
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
               <select
-                className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+                className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700/50 px-3 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-colors"
                 value={categoryId}
                 onChange={handleCreateCategory}
               >
@@ -151,10 +149,10 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, editTask, initia
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-gray-700">Due Date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Due Date</label>
             <input
               type="date"
-              className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+              className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700/50 px-3 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-colors dark:[color-scheme:dark]"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
             />

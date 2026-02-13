@@ -74,17 +74,17 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onClose, editCate
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/50 transition-opacity backdrop-blur-sm"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-sm bg-white rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">
+      <div className="relative w-full max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 transition-colors duration-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
             {editCategory ? 'Edit Category' : 'New Category'}
           </h2>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -100,7 +100,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onClose, editCate
           />
           
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Color Tag</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Color Tag</label>
             <div className="grid grid-cols-6 gap-2">
               {COLORS.map((color) => (
                 <button
@@ -108,7 +108,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onClose, editCate
                   type="button"
                   onClick={() => setSelectedColor(color)}
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary",
+                    "w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-primary",
                     color
                   )}
                 >

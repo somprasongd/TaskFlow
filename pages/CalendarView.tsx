@@ -74,7 +74,7 @@ const CalendarView: React.FC = () => {
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="flex min-h-screen bg-[#F9FAFB]">
+    <div className="flex min-h-screen bg-[#F9FAFB] dark:bg-gray-950 transition-colors duration-200">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
@@ -85,22 +85,22 @@ const CalendarView: React.FC = () => {
             
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <CalendarIcon className="w-6 h-6 text-primary" />
                 Calendar
               </h1>
               
-              <div className="flex items-center gap-2 bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
-                <button onClick={navPrev} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-600">
+              <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm transition-colors duration-200">
+                <button onClick={navPrev} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md text-gray-600 dark:text-gray-300">
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <button onClick={navToday} className="px-3 py-1.5 text-sm font-medium hover:bg-gray-100 rounded-md text-gray-700">
+                <button onClick={navToday} className="px-3 py-1.5 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md text-gray-700 dark:text-gray-200">
                   Today
                 </button>
-                <span className="px-3 py-1.5 text-sm font-semibold text-gray-900 min-w-[140px] text-center">
+                <span className="px-3 py-1.5 text-sm font-semibold text-gray-900 dark:text-white min-w-[140px] text-center">
                   {monthName}
                 </span>
-                <button onClick={navNext} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-600">
+                <button onClick={navNext} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md text-gray-600 dark:text-gray-300">
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
@@ -115,11 +115,11 @@ const CalendarView: React.FC = () => {
             </div>
 
             {/* Calendar Grid */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 flex flex-col overflow-hidden min-h-[600px]">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex-1 flex flex-col overflow-hidden min-h-[600px] transition-colors duration-200">
               {/* Week Headers */}
-              <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
+              <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                 {weekDays.map(day => (
-                  <div key={day} className="py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <div key={day} className="py-2 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                     {day}
                   </div>
                 ))}
@@ -138,15 +138,15 @@ const CalendarView: React.FC = () => {
                       key={idx}
                       onClick={() => handleNewTask(dateStr)}
                       className={cn(
-                        "min-h-[100px] border-b border-r border-gray-100 p-2 transition-colors cursor-pointer hover:bg-gray-50 flex flex-col gap-1",
-                        !isCurrentMonth && "bg-gray-50/50 text-gray-400",
-                        isToday && "bg-blue-50/30"
+                        "min-h-[100px] border-b border-r border-gray-100 dark:border-gray-700 p-2 transition-colors cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 flex flex-col gap-1",
+                        !isCurrentMonth && "bg-gray-50/50 dark:bg-gray-900/30 text-gray-400 dark:text-gray-600",
+                        isToday && "bg-blue-50/30 dark:bg-blue-900/10"
                       )}
                     >
                       <div className="flex justify-between items-start">
                         <span className={cn(
                           "text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full",
-                          isToday ? "bg-primary text-white" : "text-gray-700"
+                          isToday ? "bg-primary text-white" : "text-gray-700 dark:text-gray-300"
                         )}>
                           {day.getDate()}
                         </span>
@@ -159,15 +159,15 @@ const CalendarView: React.FC = () => {
                             <div 
                               key={task.id}
                               onClick={(e) => handleTaskClick(e, task)}
-                              className="group flex items-center gap-1.5 px-1.5 py-1 rounded bg-white border border-gray-200 shadow-sm hover:border-primary/50 hover:shadow-md transition-all text-xs overflow-hidden"
+                              className="group flex items-center gap-1.5 px-1.5 py-1 rounded bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-md transition-all text-xs overflow-hidden cursor-pointer"
                             >
                               <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", PRIORITY_COLORS[task.priority])} />
-                              <span className="truncate text-gray-700 font-medium">{task.title}</span>
+                              <span className="truncate text-gray-700 dark:text-gray-200 font-medium">{task.title}</span>
                             </div>
                           );
                         })}
                         {dayTasks.length > 3 && (
-                          <div className="text-[10px] text-gray-400 pl-2">
+                          <div className="text-[10px] text-gray-400 dark:text-gray-500 pl-2">
                             + {dayTasks.length - 3} more
                           </div>
                         )}

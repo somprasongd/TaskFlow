@@ -40,7 +40,7 @@ const Categories: React.FC = () => {
   const manageableCategories = categories.filter(c => c.id !== 'all');
 
   return (
-    <div className="flex min-h-screen bg-[#F9FAFB]">
+    <div className="flex min-h-screen bg-[#F9FAFB] dark:bg-gray-950 transition-colors duration-200">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
@@ -51,8 +51,8 @@ const Categories: React.FC = () => {
             
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
-                <p className="text-sm text-gray-500 mt-1">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Categories</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   Manage your task categories
                 </p>
               </div>
@@ -70,24 +70,24 @@ const Categories: React.FC = () => {
               {manageableCategories.map(category => (
                 <div 
                   key={category.id}
-                  className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all"
+                  className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-200"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", category.color.replace('bg-', 'bg-').replace('-500', '-100'))}>
+                      <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", category.color.replace('bg-', 'bg-').replace('-500', '-100 dark:bg-opacity-20'))}>
                         <div className={cn("w-4 h-4 rounded-full", category.color)} />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">{category.name}</h3>
-                        <p className="text-xs text-gray-500">{taskCounts[category.id]} tasks</p>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">{category.name}</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{taskCounts[category.id]} tasks</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end gap-2">
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-2">
                      <button 
                         onClick={() => handleEdit(category)}
-                        className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 dark:text-gray-500 dark:hover:text-primary-300 dark:hover:bg-primary/10 rounded-lg transition-colors"
                         title="Edit"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -95,7 +95,7 @@ const Categories: React.FC = () => {
                       {!category.isDefault && (
                         <button 
                           onClick={() => handleDelete(category)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -106,9 +106,9 @@ const Categories: React.FC = () => {
               ))}
               
               {manageableCategories.length === 0 && (
-                <div className="col-span-full flex flex-col items-center justify-center py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                  <FolderOpen className="w-10 h-10 text-gray-300 mb-2" />
-                  <p className="text-gray-500 font-medium">No categories found</p>
+                <div className="col-span-full flex flex-col items-center justify-center py-12 text-center bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+                  <FolderOpen className="w-10 h-10 text-gray-300 dark:text-gray-600 mb-2" />
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">No categories found</p>
                   <button onClick={handleNewCategory} className="text-primary text-sm font-medium mt-1 hover:underline">Create one</button>
                 </div>
               )}
