@@ -6,7 +6,7 @@ import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { useTasks } from '../context/TaskContext';
 import { useTheme } from '../context/ThemeContext';
-import { User, Mail, Shield, BarChart3, CheckCircle, Clock, Layout, Save, Moon, Sun, Monitor } from 'lucide-react';
+import { User, Mail, Shield, BarChart3, CheckCircle, Clock, Layout, Save, Moon, Sun, Monitor, Lock } from 'lucide-react';
 import { cn } from '../utils';
 
 const Profile: React.FC = () => {
@@ -15,11 +15,20 @@ const Profile: React.FC = () => {
   const { tasks, categories } = useTasks();
   const { theme, setTheme } = useTheme();
   
+  // Profile Form State
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Password Form State
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isPasswordExpanded, setIsPasswordExpanded] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     if (user) {
@@ -28,7 +37,7 @@ const Profile: React.FC = () => {
     }
   }, [user]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
@@ -40,6 +49,33 @@ const Profile: React.FC = () => {
       setSuccessMessage('Profile updated successfully');
       setTimeout(() => setSuccessMessage(''), 3000);
     }, 800);
+  };
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordMessage({ type: '', text: '' });
+
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ type: 'error', text: 'New passwords do not match' });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordMessage({ type: 'error', text: 'Password must be at least 8 characters' });
+      return;
+    }
+
+    setPasswordLoading(true);
+    // Simulate API delay
+    setTimeout(() => {
+      setPasswordLoading(false);
+      setIsPasswordExpanded(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordMessage({ type: 'success', text: 'Password updated successfully' });
+      setTimeout(() => setPasswordMessage({ type: '', text: '' }), 3000);
+    }, 1000);
   };
 
   // Calculate Stats
@@ -145,7 +181,7 @@ const Profile: React.FC = () => {
                         )}
                       </div>
 
-                      <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
+                      <form onSubmit={handleProfileSubmit} className="space-y-4 max-w-lg">
                         <div className="grid grid-cols-1 gap-4">
                           <Input
                             label="Full Name"
@@ -157,7 +193,7 @@ const Profile: React.FC = () => {
                           <Input
                             label="Email Address"
                             value={email}
-                            disabled={true} // Email usually immutable or requires separate flow
+                            disabled={true} 
                             className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                             icon={<Mail className="w-4 h-4" />}
                           />
@@ -185,6 +221,69 @@ const Profile: React.FC = () => {
                         )}
                       </form>
                     </div>
+
+                    {/* Change Password Section */}
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Security</h3>
+                      </div>
+
+                      {!isPasswordExpanded ? (
+                        <Button variant="secondary" onClick={() => setIsPasswordExpanded(true)} className="w-full sm:w-auto justify-start">
+                          <Lock className="w-4 h-4 mr-2" />
+                          Change Password
+                        </Button>
+                      ) : (
+                        <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-lg bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2">
+                          <Input
+                            label="Current Password"
+                            type="password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            required
+                          />
+                          <Input
+                            label="New Password"
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                          />
+                          <Input
+                            label="Confirm New Password"
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                          />
+
+                          <div className="flex items-center gap-3 pt-2">
+                             <Button type="submit" isLoading={passwordLoading}>
+                               Update Password
+                             </Button>
+                             <Button type="button" variant="ghost" onClick={() => {
+                               setIsPasswordExpanded(false);
+                               setCurrentPassword('');
+                               setNewPassword('');
+                               setConfirmPassword('');
+                               setPasswordMessage({ type: '', text: '' });
+                             }}>
+                               Cancel
+                             </Button>
+                          </div>
+                        </form>
+                      )}
+
+                      {passwordMessage.text && (
+                        <div className={cn(
+                          "mt-4 p-3 rounded-lg text-sm font-medium animate-in fade-in",
+                          passwordMessage.type === 'error' ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400" : "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400"
+                        )}>
+                          {passwordMessage.text}
+                        </div>
+                      )}
+                    </div>
+
                   </div>
                 </div>
               </div>
