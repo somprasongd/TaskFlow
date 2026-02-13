@@ -1,0 +1,83 @@
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import Input from '../components/Input';
+import Button from '../components/Button';
+import { CheckSquare } from 'lucide-react';
+
+const Login: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      login(email);
+      navigate('/');
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+      <div className="w-full max-w-[400px] bg-white rounded-2xl shadow-xl p-8 animate-in fade-in zoom-in-95 duration-500">
+        
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-4">
+            <CheckSquare className="w-6 h-6" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
+          <p className="text-sm text-gray-500 mt-2">Enter your credentials to access TaskFlow</p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <Input
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+          />
+          <div className="space-y-1">
+            <div className="flex justify-between items-baseline">
+              <Input
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <div className="flex justify-end">
+              <a href="#" className="text-xs font-medium text-primary hover:text-primary-dark">
+                Forgot password?
+              </a>
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
+            Sign In
+          </Button>
+
+          <p className="text-center text-sm text-gray-600">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-semibold text-primary hover:text-primary-dark">
+              Create account
+            </Link>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default Login;

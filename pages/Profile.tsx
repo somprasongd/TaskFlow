@@ -1,0 +1,213 @@
+import React, { useState, useEffect } from 'react';
+import Sidebar from '../components/Sidebar';
+import TopBar from '../components/TopBar';
+import Input from '../components/Input';
+import Button from '../components/Button';
+import { useAuth } from '../context/AuthContext';
+import { useTasks } from '../context/TaskContext';
+import { User, Mail, Shield, BarChart3, CheckCircle, Clock, Layout, Save } from 'lucide-react';
+
+const Profile: React.FC = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { user, updateProfile } = useAuth();
+  const { tasks, categories } = useTasks();
+  
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+      setEmail(user.email);
+    }
+  }, [user]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Simulate API delay
+    setTimeout(() => {
+      updateProfile(name);
+      setIsLoading(false);
+      setIsEditing(false);
+      setSuccessMessage('Profile updated successfully');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    }, 800);
+  };
+
+  // Calculate Stats
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.isCompleted).length;
+  const activeTasks = totalTasks - completedTasks;
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const highPriorityTasks = tasks.filter(t => t.priority === 'high' && !t.isCompleted).length;
+
+  return (
+    <div className="flex min-h-screen bg-[#F9FAFB]">
+      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        <TopBar onMenuClick={() => setIsSidebarOpen(true)} />
+
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <div className="max-w-4xl mx-auto space-y-6">
+            
+            {/* Header */}
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Profile & Settings</h1>
+              <p className="text-sm text-gray-500 mt-1">Manage your account settings and view your productivity stats.</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              {/* Left Column: Profile Card */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="p-6 sm:p-8 border-b border-gray-100 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                    <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary text-3xl font-bold">
+                      {user?.name.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex-1 text-center sm:text-left">
+                      <h2 className="text-xl font-bold text-gray-900">{user?.name}</h2>
+                      <p className="text-gray-500">{user?.email}</p>
+                      <div className="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                          <Shield className="w-3 h-3" />
+                          Pro Plan
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                          <CheckCircle className="w-3 h-3" />
+                          Verified
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-6 sm:p-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+                      {!isEditing && (
+                        <Button variant="secondary" size="sm" onClick={() => setIsEditing(true)}>
+                          Edit Profile
+                        </Button>
+                      )}
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
+                      <div className="grid grid-cols-1 gap-4">
+                        <Input
+                          label="Full Name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          disabled={!isEditing}
+                          icon={<User className="w-4 h-4" />}
+                        />
+                        <Input
+                          label="Email Address"
+                          value={email}
+                          disabled={true} // Email usually immutable or requires separate flow
+                          className="bg-gray-50 text-gray-500 cursor-not-allowed"
+                          icon={<Mail className="w-4 h-4" />}
+                        />
+                      </div>
+
+                      {isEditing && (
+                        <div className="flex items-center gap-3 pt-2 animate-in fade-in slide-in-from-top-2">
+                          <Button type="submit" isLoading={isLoading} className="gap-2">
+                            <Save className="w-4 h-4" />
+                            Save Changes
+                          </Button>
+                          <Button type="button" variant="ghost" onClick={() => {
+                            setIsEditing(false);
+                            setName(user?.name || '');
+                          }}>
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
+                      
+                      {successMessage && (
+                        <p className="text-sm text-green-600 font-medium animate-in fade-in">
+                          {successMessage}
+                        </p>
+                      )}
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Stats */}
+              <div className="space-y-6">
+                
+                {/* Stats Grid */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-gray-400" />
+                    Productivity
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+                      <div className="text-2xl font-bold text-blue-700">{completedTasks}</div>
+                      <div className="text-xs font-medium text-blue-600 mt-1">Completed</div>
+                    </div>
+                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
+                      <div className="text-2xl font-bold text-amber-700">{activeTasks}</div>
+                      <div className="text-xs font-medium text-amber-600 mt-1">Pending</div>
+                    </div>
+                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                      <div className="text-2xl font-bold text-emerald-700">{completionRate}%</div>
+                      <div className="text-xs font-medium text-emerald-600 mt-1">Completion Rate</div>
+                    </div>
+                    <div className="p-4 rounded-xl bg-purple-50 border border-purple-100">
+                      <div className="text-2xl font-bold text-purple-700">{categories.length}</div>
+                      <div className="text-xs font-medium text-purple-600 mt-1">Categories</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Info */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
+                    Account Overview
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 text-gray-600">
+                        <Clock className="w-4 h-4" />
+                        Member Since
+                      </span>
+                      <span className="font-medium text-gray-900">Feb 2026</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 text-gray-600">
+                        <Layout className="w-4 h-4" />
+                        Total Tasks Created
+                      </span>
+                      <span className="font-medium text-gray-900">{totalTasks}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 text-gray-600">
+                        <Shield className="w-4 h-4" />
+                        High Priority Active
+                      </span>
+                      <span className="font-medium text-red-600">{highPriorityTasks}</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default Profile;
