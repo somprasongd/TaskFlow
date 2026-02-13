@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import Input from '../components/Input';
-import Button from '../components/Button';
 import { CheckSquare } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import Button from '../components/Button';
+import Input from '../components/Input';
+import { useAuth } from '../context/AuthContext';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -15,12 +15,14 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      login(email);
+    try {
+      await login(email, password);
       navigate('/');
+    } catch (error: any) {
+      alert(error.message || 'Login failed');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

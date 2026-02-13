@@ -17,7 +17,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, editTask, initia
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<Priority>('medium');
+  const [priority, setPriority] = useState<Priority>('MEDIUM');
   const [categoryId, setCategoryId] = useState('all');
   const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
@@ -35,7 +35,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, editTask, initia
         // Reset defaults
         setTitle('');
         setDescription('');
-        setPriority('medium');
+        setPriority('MEDIUM');
         setCategoryId('all');
         setDueDate(initialDate || '');
       }
@@ -116,9 +116,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, editTask, initia
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as Priority)}
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
               </select>
             </div>
 

@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { BarChart3, CheckCircle, Clock, Layout, Lock, Mail, Monitor, Moon, Save, Shield, Sun, User } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { apiFetch } from '../services/client';
+import Button from '../components/Button';
+import Input from '../components/Input';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
-import Input from '../components/Input';
-import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { useTasks } from '../context/TaskContext';
 import { useTheme } from '../context/ThemeContext';
-import { User, Mail, Shield, BarChart3, CheckCircle, Clock, Layout, Save, Moon, Sun, Monitor, Lock } from 'lucide-react';
 import { cn } from '../utils';
 
 const Profile: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { user, updateProfile } = useAuth();
-  const { tasks, categories } = useTasks();
+  const { user, updateProfile, changePassword } = useAuth();
+  const { categories } = useTasks();
   const { theme, setTheme } = useTheme();
   
   // Profile Form State
@@ -30,28 +31,49 @@ const Profile: React.FC = () => {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
 
+  // Stats State
+  const [stats, setStats] = useState<{
+    totalTasks: number;
+    completedTasks: number;
+    activeTasks: number;
+    completionRate: number;
+    highPriorityTasks: number;
+    categoryCount: number;
+  } | null>(null);
+
   useEffect(() => {
     if (user) {
       setName(user.name);
       setEmail(user.email);
+      fetchStats();
     }
   }, [user]);
 
-  const handleProfileSubmit = (e: React.FormEvent) => {
+  const fetchStats = async () => {
+    try {
+      const data = await apiFetch('/api/stats');
+      setStats(data);
+    } catch (error) {
+      console.error('Failed to fetch stats', error);
+    }
+  };
+
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API delay
-    setTimeout(() => {
-      updateProfile(name);
-      setIsLoading(false);
+    try {
+      await updateProfile(name);
       setIsEditing(false);
       setSuccessMessage('Profile updated successfully');
       setTimeout(() => setSuccessMessage(''), 3000);
-    }, 800);
+    } catch (error: any) {
+      alert(error.message || 'Failed to update profile');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordMessage({ type: '', text: '' });
 
@@ -66,24 +88,17 @@ const Profile: React.FC = () => {
     }
 
     setPasswordLoading(true);
-    // Simulate API delay
-    setTimeout(() => {
+    try {
+      await changePassword(currentPassword, newPassword);
+      // Logout happens automatically in Context on success
+    } catch (error: any) {
+      setPasswordMessage({ type: 'error', text: error.message || 'Failed to update password' });
+    } finally {
       setPasswordLoading(false);
-      setIsPasswordExpanded(false);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setPasswordMessage({ type: 'success', text: 'Password updated successfully' });
-      setTimeout(() => setPasswordMessage({ type: '', text: '' }), 3000);
-    }, 1000);
+    }
   };
 
-  // Calculate Stats
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.isCompleted).length;
-  const activeTasks = totalTasks - completedTasks;
-  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  const highPriorityTasks = tasks.filter(t => t.priority === 'high' && !t.isCompleted).length;
+  if (!user) return null;
 
   return (
     <div className="flex min-h-screen bg-[#F9FAFB] dark:bg-gray-950 transition-colors duration-200">
@@ -108,11 +123,11 @@ const Profile: React.FC = () => {
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-200">
                   <div className="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row items-center sm:items-start gap-6">
                     <div className="w-24 h-24 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary text-3xl font-bold">
-                      {user?.name.substring(0, 2).toUpperCase()}
+                      {user.name.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1 text-center sm:text-left">
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">{user?.name}</h2>
-                      <p className="text-gray-500 dark:text-gray-400">{user?.email}</p>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">{user.name}</h2>
+                      <p className="text-gray-500 dark:text-gray-400">{user.email}</p>
                       <div className="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                           <Shield className="w-3 h-3" />
@@ -207,7 +222,7 @@ const Profile: React.FC = () => {
                             </Button>
                             <Button type="button" variant="ghost" onClick={() => {
                               setIsEditing(false);
-                              setName(user?.name || '');
+                              setName(user.name);
                             }}>
                               Cancel
                             </Button>
@@ -259,7 +274,7 @@ const Profile: React.FC = () => {
 
                           <div className="flex items-center gap-3 pt-2">
                              <Button type="submit" isLoading={passwordLoading}>
-                               Update Password
+                                Update Password
                              </Button>
                              <Button type="button" variant="ghost" onClick={() => {
                                setIsPasswordExpanded(false);
@@ -300,19 +315,19 @@ const Profile: React.FC = () => {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
-                      <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">{completedTasks}</div>
+                      <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">{stats?.completedTasks || 0}</div>
                       <div className="text-xs font-medium text-blue-600 dark:text-blue-300 mt-1">Completed</div>
                     </div>
                     <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
-                      <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">{activeTasks}</div>
+                      <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">{stats?.activeTasks || 0}</div>
                       <div className="text-xs font-medium text-amber-600 dark:text-amber-300 mt-1">Pending</div>
                     </div>
                     <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800">
-                      <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{completionRate}%</div>
+                      <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{Math.round(stats?.completionRate || 0)}%</div>
                       <div className="text-xs font-medium text-emerald-600 dark:text-emerald-300 mt-1">Completion Rate</div>
                     </div>
                     <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
-                      <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">{categories.length}</div>
+                      <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">{stats?.categoryCount || categories.length}</div>
                       <div className="text-xs font-medium text-purple-600 dark:text-purple-300 mt-1">Categories</div>
                     </div>
                   </div>
@@ -329,21 +344,23 @@ const Profile: React.FC = () => {
                         <Clock className="w-4 h-4" />
                         Member Since
                       </span>
-                      <span className="font-medium text-gray-900 dark:text-gray-200">Feb 2026</span>
+                      <span className="font-medium text-gray-900 dark:text-gray-200">
+                        {user ? new Date((user as any).createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Feb 2026'}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                         <Layout className="w-4 h-4" />
                         Total Tasks Created
                       </span>
-                      <span className="font-medium text-gray-900 dark:text-gray-200">{totalTasks}</span>
+                      <span className="font-medium text-gray-900 dark:text-gray-200">{stats?.totalTasks || 0}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                         <Shield className="w-4 h-4" />
                         High Priority Active
                       </span>
-                      <span className="font-medium text-red-600 dark:text-red-400">{highPriorityTasks}</span>
+                      <span className="font-medium text-red-600 dark:text-red-400">{stats?.highPriorityTasks || 0}</span>
                     </div>
                   </div>
                 </div>

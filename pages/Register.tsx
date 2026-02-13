@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import Input from '../components/Input';
-import Button from '../components/Button';
 import { CheckSquare } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import Button from '../components/Button';
+import Input from '../components/Input';
+import { useAuth } from '../context/AuthContext';
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -29,11 +29,14 @@ const Register: React.FC = () => {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      register(email);
+    try {
+      await register(email, password);
       navigate('/');
+    } catch (err: any) {
+      setError(err.message || 'Registration failed');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

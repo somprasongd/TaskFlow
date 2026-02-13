@@ -105,7 +105,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
               PRIORITY_BG_COLORS[task.priority],
               PRIORITY_BG_COLORS_DARK[task.priority]
             )}>
-              <Flag className={cn("w-4 h-4", task.priority === 'high' ? "fill-current" : "")} />
+              <Flag className={cn("w-4 h-4", task.priority === 'HIGH' ? "fill-current" : "")} />
               <span className="capitalize font-medium">{task.priority} Priority</span>
             </div>
 

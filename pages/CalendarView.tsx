@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
 import Sidebar from '../components/Sidebar';
-import TopBar from '../components/TopBar';
-import TaskModal from '../components/TaskModal';
 import TaskDetailModal from '../components/TaskDetailModal';
+import TaskModal from '../components/TaskModal';
+import TopBar from '../components/TopBar';
 import { useTasks } from '../context/TaskContext';
 import { Task } from '../types';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { cn, PRIORITY_COLORS } from '../utils';
 
 const CalendarView: React.FC = () => {
@@ -59,10 +59,19 @@ const CalendarView: React.FC = () => {
   }, [currentDate]); // Re-calculate when month changes
 
   const getTasksForDay = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+
     return tasks.filter(task => {
       if (!task.dueDate) return false;
-      return task.dueDate.startsWith(dateStr) && !task.isCompleted;
+      const tDate = new Date(task.dueDate);
+      const tYear = tDate.getFullYear();
+      const tMonth = String(tDate.getMonth() + 1).padStart(2, '0');
+      const tDay = String(tDate.getDate()).padStart(2, '0');
+      const tDateStr = `${tYear}-${tMonth}-${tDay}`;
+      return tDateStr === dateStr && !task.isCompleted;
     });
   };
 

@@ -1,68 +1,31 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Task, Category, FilterState } from '../types';
-import { generateId } from '../utils';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { apiFetch } from '../services/client';
+import { Category, FilterState, Task } from '../types';
+import { useAuth } from './AuthContext';
 
 interface TaskContextType {
   tasks: Task[];
   categories: Category[];
   filter: FilterState;
   setFilter: React.Dispatch<React.SetStateAction<FilterState>>;
-  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateTask: (id: string, updates: Partial<Task>) => void;
-  deleteTask: (id: string) => void;
-  reorderTasks: (newTasks: Task[]) => void;
-  addCategory: (name: string, color?: string) => string;
-  updateCategory: (id: string, updates: Partial<Category>) => void;
-  deleteCategory: (id: string) => void;
-  getFilteredTasks: () => Task[];
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'sortOrder'>) => Promise<void>;
+  updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  reorderTasks: (newTasks: Task[]) => Promise<void>;
+  addCategory: (name: string, color?: string) => Promise<string>;
+  updateCategory: (id: string, updates: Partial<Category>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  getFilteredTasks: () => Task[]; // This will return current state
   getTaskCounts: () => Record<string, number>;
+  refreshData: () => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
-const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'all', name: 'All Tasks', color: 'bg-gray-500', isDefault: true },
-  { id: 'work', name: 'Work', color: 'bg-blue-500', isDefault: false },
-  { id: 'personal', name: 'Personal', color: 'bg-purple-500', isDefault: false },
-  { id: 'study', name: 'Study', color: 'bg-indigo-500', isDefault: false },
-];
-
-const INITIAL_TASKS: Task[] = [
-  {
-    id: '1',
-    title: 'Review Frontend PRD',
-    description: 'Go through the TaskFlow PRD and note down key requirements for implementation.',
-    priority: 'high',
-    categoryId: 'work',
-    isCompleted: false,
-    dueDate: new Date(Date.now() + 86400000).toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    title: 'Buy groceries',
-    description: 'Milk, Eggs, Bread, and Coffee.',
-    priority: 'medium',
-    categoryId: 'personal',
-    isCompleted: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize state from local storage or defaults
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    const saved = localStorage.getItem('taskflow_tasks');
-    return saved ? JSON.parse(saved) : INITIAL_TASKS;
-  });
-
-  const [categories, setCategories] = useState<Category[]>(() => {
-    const saved = localStorage.getItem('taskflow_categories');
-    return saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
-  });
-
+  const { isAuthenticated } = useAuth();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [filter, setFilter] = useState<FilterState>({
     searchQuery: '',
     priority: [],
@@ -71,136 +34,140 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     sortBy: 'manual',
   });
 
-  // Persist to local storage
-  useEffect(() => {
-    localStorage.setItem('taskflow_tasks', JSON.stringify(tasks));
-  }, [tasks]);
+  const fetchTasks = useCallback(async () => {
+    if (!isAuthenticated) return;
+    
+    const params = new URLSearchParams();
+    if (filter.searchQuery) params.append('search', filter.searchQuery);
+    if (filter.priority.length > 0) params.append('priority', filter.priority.join(','));
+    if (filter.categoryId && filter.categoryId !== 'all') params.append('categoryId', filter.categoryId);
+    if (filter.status) params.append('status', filter.status);
+    if (filter.sortBy) params.append('sortBy', filter.sortBy);
+
+    try {
+      const data = await apiFetch(`/api/tasks?${params.toString()}`);
+      setTasks(data.tasks);
+    } catch (error) {
+      console.error('Failed to fetch tasks', error);
+    }
+  }, [isAuthenticated, filter]);
+
+  const fetchCategories = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      const data = await apiFetch('/api/categories');
+      setCategories(data.categories);
+    } catch (error) {
+      console.error('Failed to fetch categories', error);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    localStorage.setItem('taskflow_categories', JSON.stringify(categories));
-  }, [categories]);
+    if (isAuthenticated) {
+      fetchTasks();
+      fetchCategories();
+    } else {
+      setTasks([]);
+      setCategories([]);
+    }
+  }, [isAuthenticated, fetchTasks, fetchCategories]);
 
-  const addTask = (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newTask: Task = {
-      ...taskData,
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+  const addTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'sortOrder'>) => {
+    const newTask = await apiFetch('/api/tasks', {
+      method: 'POST',
+      data: taskData,
+    });
     setTasks(prev => [newTask, ...prev]);
+    fetchCategories(); // Update counts
   };
 
-  const updateTask = (id: string, updates: Partial<Task>) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates, updatedAt: new Date().toISOString() } : t));
+  const updateTask = async (id: string, updates: Partial<Task>) => {
+    const updatedTask = await apiFetch(`/api/tasks/${id}`, {
+      method: 'PATCH',
+      data: updates,
+    });
+    setTasks(prev => prev.map(t => t.id === id ? updatedTask : t));
+    
+    // If completion status changed, refresh categories for counts
+    if (updates.isCompleted !== undefined) {
+      fetchCategories();
+    }
   };
 
-  const deleteTask = (id: string) => {
+  const deleteTask = async (id: string) => {
+    await apiFetch(`/api/tasks/${id}`, {
+      method: 'DELETE',
+    });
     setTasks(prev => prev.filter(t => t.id !== id));
+    fetchCategories();
   };
 
-  const reorderTasks = (newTasks: Task[]) => {
+  const reorderTasks = async (newTasks: Task[]) => {
+    // Optimistic update
+    const oldTasks = [...tasks];
     setTasks(newTasks);
+
+    try {
+      await apiFetch('/api/tasks/reorder', {
+        method: 'PUT',
+        data: {
+          tasks: newTasks.map((t, index) => ({ id: t.id, sortOrder: index })),
+        },
+      });
+    } catch (error) {
+      setTasks(oldTasks);
+      console.error('Failed to reorder tasks', error);
+    }
   };
 
-  const addCategory = (name: string, color: string = 'bg-gray-500') => {
-    const id = generateId();
-    const newCategory: Category = {
-      id,
-      name,
-      color,
-    };
+  const addCategory = async (name: string, color: string = 'bg-gray-500') => {
+    const newCategory = await apiFetch('/api/categories', {
+      method: 'POST',
+      data: { name, color },
+    });
     setCategories(prev => [...prev, newCategory]);
-    return id;
+    return newCategory.id;
   };
 
-  const updateCategory = (id: string, updates: Partial<Category>) => {
-    setCategories(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+  const updateCategory = async (id: string, updates: Partial<Category>) => {
+    const updatedCategory = await apiFetch(`/api/categories/${id}`, {
+      method: 'PATCH',
+      data: updates,
+    });
+    setCategories(prev => prev.map(c => c.id === id ? updatedCategory : c));
   };
 
-  const deleteCategory = (id: string) => {
-    if (DEFAULT_CATEGORIES.find(c => c.id === id)?.isDefault) return;
+  const deleteCategory = async (id: string) => {
+    await apiFetch(`/api/categories/${id}`, {
+      method: 'DELETE',
+    });
     setCategories(prev => prev.filter(c => c.id !== id));
-    // Reset tasks with this category to undefined or a default? For now, just keep them loosely typed or move to 'General'
-    setTasks(prev => prev.map(t => t.categoryId === id ? { ...t, categoryId: undefined } : t));
+    fetchTasks(); // Tasks might have become uncategorized
   };
 
   const getFilteredTasks = () => {
-    let filtered = [...tasks];
-
-    // Category Filter
-    if (filter.categoryId && filter.categoryId !== 'all') {
-      filtered = filtered.filter(t => t.categoryId === filter.categoryId);
-    }
-
-    // Search Filter
-    if (filter.searchQuery) {
-      const query = filter.searchQuery.toLowerCase();
-      filtered = filtered.filter(t => 
-        t.title.toLowerCase().includes(query) || 
-        t.description?.toLowerCase().includes(query)
-      );
-    }
-
-    // Priority Filter
-    if (filter.priority.length > 0) {
-      filtered = filtered.filter(t => filter.priority.includes(t.priority));
-    }
-
-    // Status Filter - Note: Dashboard now handles splitting view, but if Status Filter is explicitly set, we honor it.
-    if (filter.status === 'active') {
-      filtered = filtered.filter(t => !t.isCompleted);
-    } else if (filter.status === 'completed') {
-      filtered = filtered.filter(t => t.isCompleted);
-    }
-
-    // Sorting
-    filtered.sort((a, b) => {
-      // For manual sort, we generally rely on the array index.
-      // However, if we split active/completed in the UI, we just need to respect the relative order.
-      if (filter.sortBy === 'manual') {
-        return 0; // Keep original array order
-      }
-
-      // Always put completed tasks at the bottom unless filtering by completed specifically
-      if (filter.status === 'all' && a.isCompleted !== b.isCompleted) {
-        return a.isCompleted ? 1 : -1;
-      }
-
-      switch (filter.sortBy) {
-        case 'priority': {
-          const weights = { high: 3, medium: 2, low: 1 };
-          return weights[b.priority] - weights[a.priority];
-        }
-        case 'dueDate': {
-          if (!a.dueDate) return 1;
-          if (!b.dueDate) return -1;
-          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-        }
-        case 'alphabetical':
-          return a.title.localeCompare(b.title);
-        case 'createdAt':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        default:
-          return 0;
-      }
-    });
-
-    return filtered;
+    // Since we fetch filtered tasks from backend, we just return current tasks.
+    // However, if the UI expects us to filter in-memory (e.g. for immediate search feedback),
+    // we could do it here. For now, let's just return tasks.
+    return tasks;
   };
 
   const getTaskCounts = () => {
     const counts: Record<string, number> = {};
-    // Initialize all categories with 0
-    categories.forEach(c => counts[c.id] = 0);
-    // Count total active
-    counts['all'] = tasks.filter(t => !t.isCompleted).length;
+    let totalActive = 0;
     
-    tasks.forEach(task => {
-      if (!task.isCompleted && task.categoryId && counts[task.categoryId] !== undefined) {
-        counts[task.categoryId]++;
-      }
+    categories.forEach(c => {
+      // @ts-ignore - taskCount is added by backend
+      counts[c.id] = c.taskCount || 0;
+      totalActive += (c as any).taskCount || 0;
     });
+    
+    counts['all'] = totalActive;
     return counts;
+  };
+
+  const refreshData = async () => {
+    await Promise.all([fetchTasks(), fetchCategories()]);
   };
 
   return (
@@ -218,6 +185,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       deleteCategory,
       getFilteredTasks,
       getTaskCounts,
+      refreshData,
     }}>
       {children}
     </TaskContext.Provider>

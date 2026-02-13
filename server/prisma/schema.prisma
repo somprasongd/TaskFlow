@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(uuid())
+  email         String     @unique
+  passwordHash  String     @map("password_hash")
+  name          String
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  tasks         Task[]
+  categories    Category[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  priority    Priority  @default(MEDIUM)
+  isCompleted Boolean   @default(false) @map("is_completed")
+  dueDate     DateTime? @map("due_date")
+  sortOrder   Int       @default(0) @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  userId      String    @map("user_id")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  categoryId  String?   @map("category_id")
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, isCompleted])
+  @@index([userId, categoryId])
+  @@index([userId, sortOrder])
+  @@map("tasks")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  color     String   @default("bg-gray-500")
+  isDefault Boolean  @default(false) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tasks     Task[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("categories")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}

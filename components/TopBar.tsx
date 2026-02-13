@@ -49,10 +49,10 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
           
           <div className="flex items-center gap-1.5 border-r border-gray-200 dark:border-gray-700 pr-3 mr-1">
             <button
-              onClick={() => togglePriority('high')}
+              onClick={() => togglePriority('HIGH')}
               className={cn(
                 "px-2.5 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap",
-                filter.priority.includes('high')
+                filter.priority.includes('HIGH')
                   ? "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800"
                   : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               )}
@@ -60,10 +60,10 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               High
             </button>
             <button
-              onClick={() => togglePriority('medium')}
+              onClick={() => togglePriority('MEDIUM')}
               className={cn(
                 "px-2.5 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap",
-                filter.priority.includes('medium')
+                filter.priority.includes('MEDIUM')
                   ? "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800"
                   : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               )}
@@ -71,10 +71,10 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               Medium
             </button>
             <button
-              onClick={() => togglePriority('low')}
+              onClick={() => togglePriority('LOW')}
               className={cn(
                 "px-2.5 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap",
-                filter.priority.includes('low')
+                filter.priority.includes('LOW')
                   ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
                   : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               )}

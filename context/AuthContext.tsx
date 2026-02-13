@@ -1,13 +1,15 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { apiFetch } from '../services/client';
 import { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string) => void;
-  register: (email: string) => void;
-  logout: () => void;
-  updateProfile: (name: string) => void;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name?: string) => Promise<void>;
+  logout: () => Promise<void>;
+  updateProfile: (name: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -16,42 +18,72 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Check local storage for persisted session
-    const storedUser = localStorage.getItem('taskflow_user');
+    const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
   }, []);
 
-  const login = (email: string) => {
-    // Mock login
-    const newUser = { id: '1', email, name: email.split('@')[0] };
-    setUser(newUser);
-    localStorage.setItem('taskflow_user', JSON.stringify(newUser));
+  const login = async (email: string, password: string) => {
+    const data = await apiFetch('/api/auth/login', {
+      method: 'POST',
+      data: { email, password },
+    });
+    
+    setUser(data.user);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
   };
 
-  const register = (email: string) => {
-    // Mock register
-    const newUser = { id: '1', email, name: email.split('@')[0] };
-    setUser(newUser);
-    localStorage.setItem('taskflow_user', JSON.stringify(newUser));
+  const register = async (email: string, password: string, name?: string) => {
+    const data = await apiFetch('/api/auth/register', {
+      method: 'POST',
+      data: { email, password, name },
+    });
+    
+    setUser(data.user);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('taskflow_user');
-  };
-
-  const updateProfile = (name: string) => {
-    if (user) {
-      const updatedUser = { ...user, name };
-      setUser(updatedUser);
-      localStorage.setItem('taskflow_user', JSON.stringify(updatedUser));
+  const logout = async () => {
+    const currentRefreshToken = localStorage.getItem('refreshToken');
+    if (currentRefreshToken) {
+      await apiFetch('/api/auth/logout', {
+        method: 'POST',
+        data: { refreshToken: currentRefreshToken },
+      }).catch(() => {}); // Ignore error on logout
     }
+    
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+  };
+
+  const updateProfile = async (name: string) => {
+    const updatedUser = await apiFetch('/api/users/me', {
+      method: 'PATCH',
+      data: { name },
+    });
+    
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    await apiFetch('/api/users/me/password', {
+      method: 'PUT',
+      data: { currentPassword, newPassword },
+    });
+    // The backend revokes all tokens on password change, so we should logout
+    await logout();
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout, updateProfile, changePassword }}>
       {children}
     </AuthContext.Provider>
   );

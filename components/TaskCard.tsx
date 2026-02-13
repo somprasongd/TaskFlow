@@ -1,8 +1,8 @@
+import { Calendar, Check, Edit2, MoreVertical, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
-import { Task, Category } from '../types';
-import { formatDate, cn, PRIORITY_BG_COLORS, PRIORITY_COLORS } from '../utils';
-import { Check, Calendar, MoreVertical, Edit2, Trash2, Tag, Flag } from 'lucide-react';
 import { useTasks } from '../context/TaskContext';
+import { Task } from '../types';
+import { cn, formatDate, PRIORITY_BG_COLORS, PRIORITY_COLORS } from '../utils';
 
 interface TaskCardProps {
   task: Task;
@@ -12,9 +12,9 @@ interface TaskCardProps {
 
 // Helper for dark mode specific priority colors
 const PRIORITY_BG_COLORS_DARK = {
-  high: 'dark:bg-red-900/30 dark:text-red-300 dark:border-red-800',
-  medium: 'dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800',
-  low: 'dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800',
+  HIGH: 'dark:bg-red-900/30 dark:text-red-300 dark:border-red-800',
+  MEDIUM: 'dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800',
+  LOW: 'dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800',
 };
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onClick }) => {
@@ -85,7 +85,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onClick }) => {
               "flex-shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wide border",
               PRIORITY_BG_COLORS[task.priority],
               PRIORITY_BG_COLORS_DARK[task.priority],
-              task.priority === 'high' ? "font-bold" : "font-medium"
+              task.priority === 'HIGH' ? "font-bold" : "font-medium"
             )}>
               <span className={cn("w-2 h-2 rounded-full", PRIORITY_COLORS[task.priority])} />
               {task.priority}
