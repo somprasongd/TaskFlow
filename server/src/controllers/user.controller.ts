@@ -24,8 +24,19 @@ export class UserController {
   static async changePassword(req: Request, res: Response, next: NextFunction) {
     try {
       const { currentPassword, newPassword } = req.body;
-      await UserService.changePassword((req as any).userId!, currentPassword, newPassword);
-      res.json({ message: 'Password updated successfully' });
+      const user = await UserService.changePassword((req as any).userId!, currentPassword, newPassword);
+
+      // We need to generate NEW tokens because the old ones might be invalidated or 
+      // just to follow best practices after a security event like password change.
+      // But we DON'T want to logout.
+
+      const { AuthService } = require('../services/auth.service');
+      const tokens = await AuthService.generateTokens(user.id, user.email);
+
+      res.json({
+        message: 'Password updated successfully',
+        ...tokens
+      });
     } catch (error) {
       next(error);
     }

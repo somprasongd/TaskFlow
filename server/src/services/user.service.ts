@@ -49,15 +49,13 @@ export class UserService {
 
     const passwordHash = await hashPassword(newPassword);
 
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { id: userId },
-        data: { passwordHash },
-      }),
-      // Revoke all refresh tokens for this user
-      prisma.refreshToken.deleteMany({
-        where: { userId },
-      }),
-    ]);
+    return prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+      select: {
+        id: true,
+        email: true
+      }
+    });
   }
 }
